@@ -25,6 +25,7 @@
     }
     scan(-1);
     scan(1);
+    appui.fn.log("HINTTT | " + curWord);
     return {list: list, from: CodeMirror.Pos(cur.line, start), to: CodeMirror.Pos(cur.line, end)};
   });
 
@@ -52,7 +53,7 @@
   /*
   var orig = CodeMirror.hint.javascript;
   CodeMirror.hint.javascript = function(cm) {
-    appui.f.log(cm, cm.getCursor());
+    appui.fn.log(cm, cm.getCursor());
     var inner = {
       from: cm.getCursor(),
       to: cm.getCursor(),
@@ -61,28 +62,28 @@
         displayText: "Dsiplay Test1",
         className: "adherent",
         hint: function(cm, self, data){
-          appui.f.log("hint", cm, self, data);
+          appui.fn.log("hint", cm, self, data);
         }
       }, {
         text: "test2",
         displayText: "Dsiplay Test2",
         className: "adherent",
         hint: function(cm, self, data){
-          appui.f.log("hint", cm, self, data);
+          appui.fn.log("hint", cm, self, data);
         }
       }, {
         text: "test3",
         displayText: "Dsiplay Test3",
         className: "adherent",
         hint: function(cm, self, data){
-          appui.f.log("hint", cm, self, data);
+          appui.fn.log("hint", cm, self, data);
         },
         render: function(ele, self, data){
           $(ele).append('<div style="font-family: Arial, Helvetica, sans-serif; font-size: medium"><p>hint: function<br>A hinting function, as specified above. It is possible to set the async property on a hinting function to true, in which case it will be called with arguments (cm, callback, ?options), and the completion interface will only be popped up when the hinting function calls the callback, passing it the object holding the completions.</p><p><button class="k-button">Hey</button></p></div>');
         }
       }]
     };
-    appui.f.log(inner);
+    appui.fn.log(inner);
     return inner;
   };
   */
@@ -110,7 +111,6 @@
     changed: false,
     lint: true,
     specifics:{
-      /*
       js: {
         lint: true,
       	lintWith: CodeMirror.javascriptValidator,
@@ -141,7 +141,6 @@
           "CodeMirror-lint-markers"
         ]
       },
-      */
       html: {
         autoCloseTags: true,
         extraKeys: {
@@ -167,9 +166,6 @@
       foldGutter: true,
       selections: [],
       marks: [],
-      /*foldGutter: {
-        rangeFinder: new CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)
-      },*/
       gutters: [
         "CodeMirror-linenumbers",
         "CodeMirror-foldgutter"
@@ -183,13 +179,21 @@
             cm.widget.setFullScreen(cm, false);
           }
         },
+        "Ctrl-W": function(cm){
+          window.event.preventDefault();
+          window.event.stopPropagation();
+          cm.widget.close();
+        },
         "Ctrl-S": function(cm){
           cm.widget.save();
         },
         "Ctrl-T": function(){
           cm.widget.test();
         }
-      }
+      },
+      /*foldGutter: {
+       rangeFinder: new CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)
+       },*/
     },
 
     _create: function(){
@@ -308,9 +312,9 @@
       if ( typeof(val) === 'string' ){
         o.value = val;
       }
-      appui.f.extend(cfg, this.options, {change: false, keydown: false, save: this.save});
+      appui.fn.extend(cfg, this.options, {change: false, keydown: false, save: this.save});
       if ( $$.specifics[o.mode] !== undefined ){
-        appui.f.extend(cfg, $$.specifics[o.mode]);
+        appui.fn.extend(cfg, $$.specifics[o.mode]);
       }
       if ( typeof(mode) === 'string' ){
         cfg.mode = $.ui.codemirror.modes[mode] !== undefined ? $.ui.codemirror.modes[mode].mode : mode;
@@ -335,16 +339,15 @@
           o.change($$, e);
         }
       });
+      /*
       if ( o.keydown ){
         $$.cm.on("keydown", function(inst, e){
           o.keydown($$, e);
         });
       }
-      /*
       $$.cm.on("mousedown", function(inst, e){
-        appui.f.log($$.cm);
+        appui.fn.log($$.cm);
       });
-      */
       $$.cm.on("inputRead", function(cm) {
         if ( $.ui.codemirror.timeout ){
           clearTimeout($.ui.codemirror.timeout);
@@ -353,14 +356,13 @@
           $$.cm.showHint();
         }, 150);
       });
-      /*
       $$.cm.on("keyup", function(inst, e){
         if ( !e.ctrlKey && !e.altKey &&
-          ($.inArray(e.keyCode, appui.v.keys.alt) === -1) &&
-          ($.inArray(e.keyCode, appui.v.keys.confirm) === -1) &&
-          ($.inArray(e.keyCode, appui.v.keys.dels) === -1) &&
-          ($.inArray(e.keyCode, appui.v.keys.leftRight) === -1) &&
-          ($.inArray(e.keyCode, appui.v.keys.upDown) === -1) &&
+          ($.inArray(e.keyCode, appui.var.keys.alt) === -1) &&
+          ($.inArray(e.keyCode, appui.var.keys.confirm) === -1) &&
+          ($.inArray(e.keyCode, appui.var.keys.dels) === -1) &&
+          ($.inArray(e.keyCode, appui.var.keys.leftRight) === -1) &&
+          ($.inArray(e.keyCode, appui.var.keys.upDown) === -1) &&
           (e.keyCode != 32) &&
           (e.keyCode != 59) &&
           (e.keyCode != 27)
@@ -370,7 +372,7 @@
           setTimeout(function() {
             $$.cm.showHint();
           }, 300);
-        	//return CodeMirror.Pass;
+        	return CodeMirror.Pass;
         }
       });
       */
@@ -386,7 +388,7 @@
         if ( $.inArray($.ui.codemirror.modes[mode].file, $.ui.codemirror.loadedFiles) === -1 ){
           $("head").append('<script type="text/javascript" src="' + path + 'mode/' + $.ui.codemirror.modes[mode].file + '/' + $.ui.codemirror.modes[mode].file + '.js"></script>');
           $.ui.codemirror.loadedFiles.push($.ui.codemirror.modes[mode].file);
-          appui.f.wait_for_script("CodeMirror.modes." + $.ui.codemirror.modes[mode].file, function(){
+          appui.fn.wait_for_script("CodeMirror.modes." + $.ui.codemirror.modes[mode].file, function(){
             $$._setCM(val, mode);
           });
         }
@@ -413,7 +415,7 @@
         if ( $.inArray($.ui.codemirror.modes[mode].file, $.ui.codemirror.loadedFiles) === -1 ){
   				$("head").append('<script type="text/javascript" src="' + path + 'mode/' + $.ui.codemirror.modes[mode].file + '/' + $.ui.codemirror.modes[mode].file + '.js"></script>');
           $.ui.codemirror.loadedFiles.push($.ui.codemirror.modes[mode].file);
-          appui.f.wait_for_script("CodeMirror.modes." + $.ui.codemirror.modes[mode].file, function(){
+          appui.fn.wait_for_script("CodeMirror.modes." + $.ui.codemirror.modes[mode].file, function(){
             $$.cm.setOption("mode", $.ui.codemirror.modes[mode].mode);
           });
         }
@@ -678,7 +680,7 @@
 	});
 
   CodeMirror.hint.javascript = function(cm) {
-    //appui.f.log("HINT", cm, CodeMirror.hint);
+    //appui.fn.log("HINT", cm, CodeMirror.hint);
     return CodeMirror.showHint(cm, CodeMirror.ternHint, {async: true, completeSingle: false});
   };
 
