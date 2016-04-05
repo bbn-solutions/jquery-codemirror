@@ -1,5 +1,6 @@
 (function( $ ) {
 
+  /*
   CodeMirror.registerHelper("hint", "anyword", function(editor, options) {
     var word = options && options.word || WORD;
     var range = options && options.range || RANGE;
@@ -9,48 +10,26 @@
     while (start && word.test(curLine.charAt(start - 1))) --start;
     var curWord = start != end && curLine.slice(start, end);
 
-    var list = [], seen = {};
-    function scan(dir) {
-      var line = cur.line, end = Math.min(Math.max(line + dir * range, editor.firstLine()), editor.lastLine()) + dir;
-      for (; line != end; line += dir) {
-        var text = editor.getLine(line), m;
-        word.lastIndex = 0;
-        while (m = word.exec(text)) {
-          if ((!curWord || m[0].indexOf(curWord) == 0) && !seen.hasOwnProperty(m[0])) {
-            seen[m[0]] = true;
-            list.push(m[0]);
+    var list = [], seen = {},
+        scan = function(dir) {
+          var line = cur.line, end = Math.min(Math.max(line + dir * range, editor.firstLine()), editor.lastLine()) + dir;
+          for (; line != end; line += dir) {
+            var text = editor.getLine(line), m;
+            word.lastIndex = 0;
+            while (m = word.exec(text)) {
+              if ((!curWord || m[0].indexOf(curWord) == 0) && !seen.hasOwnProperty(m[0])) {
+                seen[m[0]] = true;
+                list.push(m[0]);
+              }
+            }
           }
-        }
-      }
-    }
+        };
     scan(-1);
     scan(1);
     appui.fn.log("HINTTT | " + curWord);
     return {list: list, from: CodeMirror.Pos(cur.line, start), to: CodeMirror.Pos(cur.line, end)};
   });
 
-  CodeMirror.defineMode("html", function(config, parserConfig) {
-    var mustacheOverlay = {
-      token: function(stream, state) {
-        var ch;
-        if (stream.match("{{")) {
-          while ((ch = stream.next()) != null)
-            if (ch == "}" && stream.next() == "}") break;
-          stream.eat("}");
-          return "mustache";
-        }
-        while (stream.next() != null && !stream.match("{{", false)) {}
-        return null;
-      }
-    };
-    return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "htmlmixed"), mustacheOverlay);
-  });
-
-  CodeMirror.defineMode("js", function(config, parserConfig) {
-    return CodeMirror.getMode(config, "javascript");
-  });
-
-  /*
   var orig = CodeMirror.hint.javascript;
   CodeMirror.hint.javascript = function(cm) {
     appui.fn.log(cm, cm.getCursor());
@@ -87,6 +66,27 @@
     return inner;
   };
   */
+  CodeMirror.defineMode("html", function(config, parserConfig) {
+    var mustacheOverlay = {
+      token: function(stream, state) {
+        var ch;
+        if (stream.match("{{")) {
+          while ((ch = stream.next()) != null)
+            if (ch == "}" && stream.next() == "}") break;
+          stream.eat("}");
+          return "mustache";
+        }
+        while (stream.next() != null && !stream.match("{{", false)) {}
+        return null;
+      }
+    };
+    return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "htmlmixed"), mustacheOverlay);
+  });
+
+  CodeMirror.defineMode("js", function(config, parserConfig) {
+    return CodeMirror.getMode(config, "javascript");
+  });
+
   // private variables
 	var
     path = "",
@@ -119,11 +119,13 @@
           "CodeMirror-foldgutter",
           "CodeMirror-lint-markers"
         ],
+        /*
         extraKeys: {
           "'.'": function(cm){
             cm.showHint();
           }
         }
+        */
       },
       css: {
         lint: true,
@@ -155,6 +157,7 @@
 			lineWrapping: true,
 			mode: "html",
       theme: "pastel-on-dark",
+      readOnly: false,
       matchBrackets: true,
       autoCloseBrackets: true,
       showTrailingSpace: true,
@@ -202,32 +205,38 @@
           tag = $$.element.get(0).tagName.toLowerCase(),
           h;
       if ( tag !== 'div' ){
-        this.element.before('<div></div>');
-        this.ele = this.element.prev().get(0);
-        if ( this.element.attr("style") ){
-          $(this.ele).attr("style",this.element.attr("style")).css("position","relative");
+        $$.element.before('<div></div>');
+        $$.ele = this.element.prev().get(0);
+        if ( $$.element.attr("style") ){
+          $($$.ele).attr("style",$$.element.attr("style")).css("position","relative");
+        }
+        if ( $$.element.is("[readonly]") ){
+          o.readOnly = true;
         }
         if ( (tag === 'input') || (tag === 'textarea') ){
-          this.isInput = 1;
+          $$.isInput = 1;
         }
-        if ( !o.value && (tag === 'input') || (tag === 'textarea') ){
-          o.value = this.element.val();
-        }
-        else if ( !o.value ){
-          o.value = this.element.html();
-        }
-        this.element.hide();
+        $$.element.hide();
       }
       else{
-        this.ele = this.element.get(0);
+        $$.ele = $$.element.get(0);
       }
-      if ( !o.height && (h = $(this.ele).height()) ){
+      if ( !o.value ){
+        if ( (tag === 'input') || (tag === 'textarea') ){
+          o.value = $$.element.val();
+        }
+        else{
+          o.value = $$.ele.innerHTML;
+          $$.element.empty();
+        }
+      }
+      /*if ( !o.height && (h = $(this.ele).height()) ){
         o.height = h;
-      }
-      $$.element.addClass(this.widgetFullName);
-			this.display(o.value, o.mode);
+      }*/
+      $$.element.addClass($$.widgetFullName);
+      $$.display(o.value, o.mode);
       if ( o.value ){
-        this.setState(o);
+        $$.setState(o);
       }
 		},
 
@@ -309,7 +318,7 @@
           doc,
           $ele = $($$.ele),
           cfg = {};
-      if ( typeof(val) === 'string' ){
+      if ( (typeof(val) === 'string') && (o.value !== val) ){
         o.value = val;
       }
       appui.fn.extend(cfg, this.options, {change: false, keydown: false, save: this.save});
@@ -412,6 +421,7 @@
           }
         }
         o.mode = mode;
+        appui.fn.log($.ui.codemirror.modes[mode].file, $.ui.codemirror.loadedFiles);
         if ( $.inArray($.ui.codemirror.modes[mode].file, $.ui.codemirror.loadedFiles) === -1 ){
   				$("head").append('<script type="text/javascript" src="' + path + 'mode/' + $.ui.codemirror.modes[mode].file + '/' + $.ui.codemirror.modes[mode].file + '.js"></script>');
           $.ui.codemirror.loadedFiles.push($.ui.codemirror.modes[mode].file);
@@ -432,6 +442,10 @@
 
     getValue: function(){
       return this.cm.getValue();
+    },
+
+    setValue: function(v){
+      return this.cm.setValue(v);
     },
 
     getTheme: function(){
@@ -619,6 +633,8 @@
         file: 'javascript',
         mode: 'js'
       },
+        file: 'gfm',
+      },
       mysql: {
         file: 'sql',
         mode: 'text/x-mysql'
@@ -669,7 +685,6 @@
       }
     },
     timeout: false,
-    loadedFiles: ['xml', 'javascript', 'css', 'htmlmixed', 'clike', 'php'],
     winHeight: function() {
       return window.innerHeight || (document.documentElement || document.body).clientHeight;
     },
@@ -679,10 +694,12 @@
     autocomplete_reg: CodeMirror.commands.autocomplete
 	});
 
+  /*
   CodeMirror.hint.javascript = function(cm) {
     //appui.fn.log("HINT", cm, CodeMirror.hint);
     return CodeMirror.showHint(cm, CodeMirror.ternHint, {async: true, completeSingle: false});
   };
+  */
 
   CodeMirror.on(window, "resize", function() {
     var showing = document.body.getElementsByClassName("CodeMirror-fullscreen")[0];
