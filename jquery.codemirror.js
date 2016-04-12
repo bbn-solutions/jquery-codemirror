@@ -633,7 +633,9 @@
         file: 'javascript',
         mode: 'js'
       },
+      gfm: {
         file: 'gfm',
+        mode: 'gfm'
       },
       mysql: {
         file: 'sql',
@@ -685,6 +687,7 @@
       }
     },
     timeout: false,
+    loadedFiles: ['xml', 'javascript', 'css', 'htmlmixed', 'clike', 'php', 'ruby', 'less', 'scss', 'js', 'html', 'gfm'],
     winHeight: function() {
       return window.innerHeight || (document.documentElement || document.body).clientHeight;
     },
