@@ -515,6 +515,20 @@
       return this.cm.getDoc();
     },
 
+    getCodeMirror: function(){
+      return this.cm;
+    },
+
+    mergeView: function(){
+      var $$ = this;
+      if ( (arguments.length > 0) &&
+        $.isFunction(CodeMirror.MergeView)
+      ){
+        return CodeMirror.MergeView($$.cm.widget.ele, arguments[0]);
+      }
+      return false;
+    },
+
     getState: function(){
       var $$ = this,
           doc = $$.getDoc(),
